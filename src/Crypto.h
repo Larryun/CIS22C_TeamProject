@@ -1,6 +1,6 @@
 // Specification file for the Cryptocurrency class
 // Written By: A. Student
-// Changed By: Tommy Vu
+// Changed By: Tommy Vu, Meng Leong Un
 // IDE: Visual Studio
 
 
@@ -62,8 +62,12 @@ struct CryptocurrencyPtr{
 	Cryptocurrency* crypto;
 	string key;
 
-	CryptocurrencyPtr(){};
+	CryptocurrencyPtr() { crypto = nullptr; key = ""; };
 	CryptocurrencyPtr(Cryptocurrency* crypto_, string key_) { crypto = crypto_; key = key_; };
+
+	string getKey() { return key; };
+	Cryptocurrency* getCrypto() { return crypto; };
+	void setKey(string k) { key = k; };
 
 	bool operator < (const CryptocurrencyPtr& second) const
 	{
@@ -78,6 +82,11 @@ struct CryptocurrencyPtr{
 	bool operator == (const CryptocurrencyPtr& second) const
 	{
 		return (this->key == second.key);
+	}
+
+	bool operator != (const CryptocurrencyPtr& second) const
+	{
+		return (this->key != second.key);
 	}
 
 };
