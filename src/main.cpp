@@ -48,7 +48,7 @@ int main()
 
 	HashTable<CryptocurrencyPtr>* hashArr = new HashTable<CryptocurrencyPtr>(lines); //Initialize the hashTable
 	buildTree(inputFileName, primaryTree, secondaryTree, hashArr);
-	hashArr->printTable();
+	hashArr->printTable(printHeader, printCrypto);
 
 	// Used as a place to hold User Input for insert.
 	// char insert[30];
