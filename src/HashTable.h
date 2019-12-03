@@ -39,11 +39,11 @@ public:
 	// Delete the item with the corresponding key
 	bool deleteItem(string&);
 	int getSize() { return counter; };
+	int getCapacity() { return CAPACITY; };
 	int getCollision() { return collision; };
 	int getLoadFactor() { return (int)(((double)counter/(double)CAPACITY)*100.0); };
 	bool isFull() { return counter == CAPACITY; };
 	bool isEmpty() { return counter == 0; }
-	// For Debug
 	void printTable(void printHeader(), void printData(ItemType&));
 };
 
