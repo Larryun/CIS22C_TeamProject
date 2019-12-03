@@ -1,0 +1,30 @@
+Cryptocurrency Database
+
+============= ============= ============ ======= ======== =====================
+Algorithm     Supply        Founder      Year    Price    Coin Name
+============= ============= ============ ======= ======== =====================
+ETH           1500000000    Eich         2018    0.25     Basic Attention Token 
+SHA256        18042537      Nakamoto     2009    8800.59  Bitcoin               
+SHA256        18109627      Yang         2017    288.32   Bitcoin Cash          
+Equihash      17202361      Nakamoto     2019    7.47     Bitcoin Gold          
+SHA256        18106802      Wright       2018    131.87   Bitcoin SV            
+ETH           1000000000    Nazarov      2017    2.82     Chainlink             
+none          190688439     Kwon         2019    4.21     Cosmos                
+x11           9161056       Duffield     2014    64.4     Dash                  
+DPoS          1020544523    Larimer      2018    3.48     EOS                   
+Ethash        108519784     Buterin      2015    186.49   Ethereum              
+Ethash        115031776     DAO          2015    4.9      Ethereum Classic      
+none          2779530283    Sonstebo     2015    0.24     IOTA                  
+ETH           172363551     Gan          2019    1.38     Kucoin                
+DPoS          121561875     Kordek       2016    0.84     Lisk                  
+Scrypt        63666220      Lee          2011    61.17    Litecoin              
+CryptoNightV7 17296525      Saberhagen   2014    62.31    Monero                
+none          70538831      HongFei      2014    12.25    NEO                   
+VBFT          607351170     OnChain      2017    0.73     Ontology              
+ETH           218245307     Cascarilla   2018    1        Paxos Standard        
+POS3.0        100000000     Dai          2017    2.22     QTUM                  
+X13           99569777      Trew         2016    0.35     Stratis               
+ETH           1000000000    Chen         2019    0.045    Theta                 
+ETH           443561991     Coinbase     2018    1.02     USD Coin              
+none          99991850794   Larsen       2012    0.27     XRP                   
+Equihash      7837618       Wilcox       2019    36.95    ZCash                 

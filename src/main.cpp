@@ -44,6 +44,7 @@ bool hashTableSearch(HashTable<CryptocurrencyPtr>* table, string key, Cryptocurr
 // Screen Output function
 void printCrypto(Cryptocurrency& crypto);
 void printCrypto(CryptocurrencyPtr& cryptoPtr);
+void visitIndented(int level, CryptocurrencyPtr& cryptoPtr);
 void printHeader();
 void printHashTableStats(HashTable<CryptocurrencyPtr>* hashArr);
 string divider(int len, char symbol);
@@ -72,7 +73,7 @@ void runListCommand(char& runCommand,
 
 // Validation Function
 bool yearValidator(int& year);
-bool supplyValidator(int& supply);
+bool supplyValidator(long long& supply);
 bool priceValidator(double& price);
 bool validateInput(char& command, const string& COMMANDS);
 bool isAllAlpha(string& s);
@@ -82,7 +83,15 @@ bool isKeyExists(string& key, BinarySearchTree<CryptocurrencyPtr>* tree);
 bool insertAll(Cryptocurrency& crypto, BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
 int getNumberOfLines(string filename);
 void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+void clearStack(Stack<Cryptocurrency*>* undoStack);
 void trimSpaces(string& line);
+void exit(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+
+// Build to File Functions
+void writeData(BinarySearchTree <CryptocurrencyPtr>* primaryTree, string outFileName, Stack<Cryptocurrency*>* undoStack);
+void visitPrint(CryptocurrencyPtr& a, ofstream& outFile);
+
+
 
 int main()
 {
@@ -141,6 +150,7 @@ bool validateInput(char& command, const string& COMMANDS)
 	if (COMMANDS.find(command) != -1)
 		return true;
 	else
+		cout << command << " is not a valid operation. Please enter a valid operation. (Press H for help) \n" << endl;
 		return false;
 }
 
@@ -187,6 +197,7 @@ void runCommand(char& runCommand,
 		// Display the main menu after exit from the search manager
 		break;
 	case 'E':
+		writeData(primaryTree, "SortedOutput.txt", deleteStack);
 		// Write to file
 		break;
 	case 'F':
@@ -201,7 +212,7 @@ void runCommand(char& runCommand,
 		displayMenu();
 		break;
 	case 'I':
-		//exit();
+		exit(deleteStack, primaryTree, secondaryTree, hashArr);
 		break;
 	}
 }
@@ -330,7 +341,7 @@ void printCrypto(Cryptocurrency& crypto)
 {
 	// Subject to change
 	cout << left;
-	cout << setw(20) << crypto.getName();
+	cout << setw(25) << crypto.getName();
 	cout << setw(15) << crypto.getAlg();
 	cout << setw(4) << crypto.getDate() << endl;
 }
@@ -362,7 +373,7 @@ void printHeader()
 {
 	cout << endl << divider(55, '=') << endl;
 	cout << left;
-	cout << setw(20) << "Name";
+	cout << setw(25) << "Name";
 	cout << setw(15) << "Algorithm";
 	cout << setw(4) << "Date Founded" << endl;
 	cout << divider(55, '=') << endl;
@@ -420,7 +431,7 @@ bool yearValidator(int& year)
 	return (year >= 1950 && year <= 2019);
 }
 
-bool supplyValidator(int& supply)
+bool supplyValidator(long long& supply)
 {
 	return (supply >= 0);
 }
@@ -447,7 +458,8 @@ void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySear
 	CryptocurrencyPtr tmp;
 	int checker = 0;
 	string name, alg, founder;
-	int supply, year;
+	long long supply;
+	int year;
 	double price;
 
 	cout << "What is the name of the Cryptocurrency?" << endl;
@@ -689,10 +701,11 @@ void runListCommand(char& runCommand,
 		break;
 	case 'D':
 		// Speacial print
-		displaytSearchSubMenu();
+		primaryTree->indentedTraversal(visitIndented);
+		cout << endl;
 		break;
 	case 'E':
-		displaytSearchSubMenu();
+		displaytListSubMenu();
 		break;
 	case 'F':
 		cout << "Exiting List Manager..." << endl << endl;
@@ -733,6 +746,10 @@ void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 		else 
 			cout << "Undo Failed, Key Already Exists." << endl;
 	}
+	else
+	{
+		cout << "Undo Stack is Empty." << endl;
+	}
 }
 
 /*
@@ -741,13 +758,76 @@ void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 */
 void printHashTableStats(HashTable<CryptocurrencyPtr>* hashArr)
 {
-	cout << endl << "Statistics for cryptocurrency hashArr: " << endl;
-	cout << divider(60, '=') << endl;
+	cout << endl << "Statistics for cryptocurrency hash table: " << endl;
+	cout << divider(80, '=') << endl;
 	cout << left;
-	cout << setw(10) << "Capacity" << setw(15) << "Total Counts";
-	cout << setw(15) << "Load Factor" << setw(15) << "Collisions" << endl;
-	cout << divider(60, '=') << endl;
+	cout << setw(10) << "Capacity" << setw(15) << "Counts";
+	cout << setw(15) << "Load Factor" << setw(15) << "Collisions";
+	cout << setw(20) << "Total Item Stored" << endl;
+	cout << divider(80, '=') << endl;
 	cout << setw(10) << hashArr->getCapacity() << setw(15) << hashArr->getSize();
-	cout << setw(15) << hashArr->getLoadFactor() << setw(15) << hashArr->getCollision() << endl;
-	cout << divider(60, '=') << endl;
+	cout << setw(15) << hashArr->getLoadFactor() << setw(15) << hashArr->getCollision();
+	cout << setw(20) << hashArr->getSize() + hashArr->getCollision() << endl;
+	cout << divider(80, '=') << endl;
+}
+
+void visitIndented(int level, CryptocurrencyPtr& cryptoPtr)
+{
+	for (int i = 0; i < level; i++)
+		cout << "\t";
+	cout << "Level " << level << ": " << cryptoPtr.getCrypto()->getName() << endl;
+	//printCrypto(cryptoPtr);
+}
+
+void writeData(BinarySearchTree <CryptocurrencyPtr>* primaryTree, string outFileName, Stack<Cryptocurrency*>* undoStack)
+{
+	ofstream textFile;
+	textFile.open(outFileName.c_str());
+	// If cannot open file
+	if (!textFile.is_open())
+	{
+		cout << "Cannot open file: " + outFileName << endl;
+		return;
+	}
+	textFile << "Cryptocurrency Database" << endl;
+	textFile << endl;
+
+	textFile << "============= ============= ============ ======= ======== =====================" << endl;
+	textFile << "Algorithm     Supply        Founder      Year    Price    Coin Name" << endl;
+	textFile << "============= ============= ============ ======= ======== =====================" << endl;
+
+	primaryTree->inOrderOutput(visitPrint, textFile);
+	clearStack(undoStack);
+	cout << "Data writen to " + outFileName << endl;
+	cout << "Undo stack cleared" << endl;
+
+	textFile.close();
+}
+
+void visitPrint(CryptocurrencyPtr& a, ofstream& outFile)
+{
+	Cryptocurrency dummy = *a.getCrypto();
+	outFile << left;
+	outFile << setw(13) << dummy.getAlg() << " " << setw(13) << dummy.getSupply() << " " << setw(12) << dummy.getFounder()
+		<< " " << setw(7) << dummy.getDate() << " " << setw(8) << dummy.getPrice() << " " << setw(22) << dummy.getName() << endl;
+}
+
+void clearStack(Stack<Cryptocurrency*>* undoStack)
+{
+	Cryptocurrency* tmp;
+	while (undoStack->pop(tmp))
+		delete tmp;
+}
+
+
+void exit(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
+{
+	cout << "Deleting Undo Stack..." << endl;
+	delete undoStack;
+	cout << "Deleting Primary Tree..." << endl;
+	delete primaryTree;
+	cout << "Deleting Secondary Tree..." << endl;
+	delete secondaryTree;
+	cout << "Deleting hash table..." << endl;
+	delete hashArr;
 }

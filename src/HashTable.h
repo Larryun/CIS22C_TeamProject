@@ -71,7 +71,7 @@ HashTable<ItemType>::HashTable(int size)
 {
 	CAPACITY = nextPrime(size * 2);
 	counter = 0;
-	hashTable = new DList<ItemType>[CAPACITY]; 
+	this->hashTable = new DList<ItemType>[CAPACITY]; 
 }
 
 template<class ItemType>
@@ -182,7 +182,7 @@ void HashTable<ItemType>::reHash()
 	int OLD_CAPACITY = CAPACITY;
 	int old_counter = counter;
 	CAPACITY = nextPrime(CAPACITY * 2);
-	DList<ItemType>* oldTable = hashTable;
+	DList<ItemType>* oldTable = this->hashTable;
 	DList<ItemType>* newTable = new DList<ItemType>[CAPACITY];
 	ItemType linkedListItem;
 	string key;
@@ -192,10 +192,10 @@ void HashTable<ItemType>::reHash()
 	for (int i = 0, count = 0; i < OLD_CAPACITY && count < old_counter; i++)
 	{
 		// Go through each item in the linked list
-		for (int j = 0; j < hashTable[i].getCount(); j++)
+		for (int j = 0; j < this->hashTable[i].getCount(); j++)
 		{
 			// get the item in index j
-			if (hashTable[i].getNodeAtIndex(j, linkedListItem))
+			if (this->hashTable[i].getNodeAtIndex(j, linkedListItem))
 			{
 				key = linkedListItem.getKey();
 				// insert the the table
@@ -214,10 +214,10 @@ void HashTable<ItemType>::printTable(void printHeader(), void printData(ItemType
 	printHeader();
 	for (int i = 0; i < CAPACITY; i++)
 	{
-		if(hashTable[i].getCount() > 0)
+		if(this->hashTable[i].getCount() > 0)
 		{
-			hashTable[i].traverseForward(printData);
-			cout << "-----------------------------------------------" << endl;
+			this->hashTable[i].traverseForward(printData);
+			cout << "---------------------------------------------" << endl;
 			/* For Debug, see if the keys in linked-list have the same hash key
 			if (hashTable[i].getCount() >= 2)
 			{

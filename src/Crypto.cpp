@@ -89,7 +89,7 @@ bool Cryptocurrency::operator == (const Cryptocurrency& obj)
 //**************************************************
 // Overloaded Constructor
 //**************************************************
-Cryptocurrency::Cryptocurrency(string n, string a, int s, int d, double p, string f)
+Cryptocurrency::Cryptocurrency(string n, string a, long long s, int d, double p, string f)
 {
 	coinName = n;
 	alg = a;

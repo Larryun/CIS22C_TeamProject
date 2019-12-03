@@ -30,12 +30,14 @@ public:
 	void clear() { destroyTree(rootPtr); rootPtr = 0; count = 0; }
 	void preOrder(void visit(ItemType&)) const { _preorder(visit, rootPtr); }
 	void inOrder(void visit(ItemType&)) const { _inorder(visit, rootPtr); }
+	void inOrderOutput(void visit(ItemType&, ofstream&), ofstream& outFile) const { _inorder(visit, rootPtr, outFile); }
 	void postOrder(void visit(ItemType&)) const { _postorder(visit, rootPtr); }
 	void breadthTrav(void visit(ItemType&)) const { _breadthTrav(visit, rootPtr); }
 	void iterativePreOrder(void visit(ItemType&)) const { _iterativePreOrder(visit, rootPtr); }
 	void iterativeInOrder(void visit(ItemType&)) const { _iterativeInOrder(visit, rootPtr); }
 	void iterativePostOrder(void visit(ItemType&)) const { _iterativePostOrder(visit, rootPtr); }
 	void print(void visit(ItemType&)) const { _print(visit, rootPtr, 0); }
+	void indentedTraversal(void visitIndented(int, ItemType&)) const { _indentedTraversal(1, visitIndented, rootPtr); }
 
 	// abstract functions to be implemented by derived class
 	virtual bool insert(const ItemType& newData) = 0;
@@ -49,12 +51,14 @@ private:
 	// internal traverse
 	void _preorder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _inorder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
+	void _inorder(void visit(ItemType&, ofstream&), BinaryNode<ItemType>* nodePtr, ofstream& outFile) const;
 	void _postorder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _breadthTrav(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _iterativePreOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _iterativeInOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _iterativePostOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _print(void visit(ItemType&), BinaryNode<ItemType>* nodePtr, int level) const;
+	void _indentedTraversal(int level, void visit(int, ItemType&), BinaryNode<ItemType>* nodePtr) const;
 };
 
 //Destroy the entire tree
@@ -95,6 +99,20 @@ void BinaryTree<ItemType>::_inorder(void visit(ItemType&), BinaryNode<ItemType>*
 		ItemType item = nodePtr->getItem();
 		visit(item);
 		_inorder(visit, nodePtr->getRightPtr());
+	}
+}
+
+//Inorder Traversal For Output
+template<class ItemType>
+void BinaryTree<ItemType>::_inorder(void visit(ItemType&, ofstream&), BinaryNode<ItemType>* nodePtr, ofstream& outFile) const
+{
+	if (nodePtr != 0)
+	{
+		ItemType dummy;
+		_inorder(visit, nodePtr->getLeftPtr(), outFile);
+		dummy = nodePtr->getItem();
+		visit(dummy, outFile);
+		_inorder(visit, nodePtr->getRightPtr(), outFile);
 	}
 }
 
@@ -255,6 +273,18 @@ void BinaryTree<ItemType>::_print(void visit(ItemType&), BinaryNode<ItemType>* n
 	}
 }
 
+template<class ItemType>
+void BinaryTree<ItemType>::_indentedTraversal(int level, void visit(int, ItemType&), BinaryNode<ItemType>* nodePtr) const
+{
+	if (nodePtr != 0)
+	{
+		_indentedTraversal(level + 1, visit, nodePtr->getRightPtr());
+		ItemType item = nodePtr->getItem();
+		visit(level, item);
+		_indentedTraversal(level + 1, visit, nodePtr->getLeftPtr());
+	}
+}
+
+
 
 #endif
-
