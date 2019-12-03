@@ -28,7 +28,7 @@ public:
    ~Stack();
 
    // Stack operations
-   bool push(T);
+   bool push(const T&);
    bool pop(T &);
    bool isEmpty();
    int getCount();
@@ -78,7 +78,7 @@ double Stack<T>::getTop()
   the stack.
 *~**/
 template <class T>
-bool Stack<T>::push(T item)
+bool Stack<T>::push(const T& item)
 {
    StackNode *newNode; // Pointer to a new node
 

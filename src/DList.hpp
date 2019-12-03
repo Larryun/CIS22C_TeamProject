@@ -22,8 +22,8 @@ public:
     int getCount() const {return count;}
     void insertNode(T&);
     bool deleteNode(T);
-	void traverseForward(void printHeader(), void printData(T &)) const;
-	void traverseBackward(void printHeader(), void printData(T &)) const;
+	void traverseForward(void printData(T &)) const;
+	void traverseBackward(void printData(T &)) const;
     bool searchList(T, T &) const;
 	bool getNodeAtIndex(int, T&);
 	bool isEmpty();
@@ -50,11 +50,10 @@ DList<T>::DList()
 // pointed to by head.
 //**************************************************
 template<class T>
-void DList<T>::traverseForward(void printHeader(), void printData(T &)) const
+void DList<T>::traverseForward(void printData(T &)) const
 {
     ListNode<T> *pCur;
 	T data;
-	printHeader();
     pCur = head->getForw();
     while(pCur != head)
     {
@@ -62,7 +61,7 @@ void DList<T>::traverseForward(void printHeader(), void printData(T &)) const
 		printData(data);
         pCur = pCur->getForw();
     }
-    std::cout << "====================================================" << std::endl;
+    //std::cout << "====================================================" << std::endl;
 }
 
 //**************************************************
@@ -71,11 +70,10 @@ void DList<T>::traverseForward(void printHeader(), void printData(T &)) const
 // pointed to by head.
 //**************************************************
 template<class T>
-void DList<T>::traverseBackward(void printHeader(), void printCity(T &)) const
+void DList<T>::traverseBackward(void printCity(T &)) const
 {
     ListNode<T> *pCur;
 	T data;
-	printHeader();
     pCur = head->getBack();
     while(pCur != head)
     {

@@ -41,6 +41,8 @@ public:
 	bool remove(const ItemType & anEntry);
 	// find a target node
 	bool getEntry(const ItemType & target, ItemType & returnedItem) const;
+	// find all entry with the target node
+	bool getAllEntry(const ItemType & target, void visit(ItemType& )) const;
 	// find leftmost node
 	bool leftNode(ItemType & cool) const;
 	// find rightmost node
@@ -87,6 +89,28 @@ bool BinarySearchTree<ItemType>::getEntry(const ItemType& anEntry, ItemType & re
 	}
     return checker;
 }  
+
+template<class ItemType>
+bool BinarySearchTree<ItemType>::getAllEntry(const ItemType& target, void visit(ItemType&)) const
+{
+	// find the node
+	BinaryNode<ItemType>* entry = findNode(this->rootPtr, target);
+	// if node is found
+	if (entry)
+	{
+		do {
+			// visit the node
+			ItemType tmp = entry->getItem();
+			visit(tmp);
+			// find next node with the same key
+			// since the, by default, we insert the node with the same key to the right
+			// so all the node with the same key will be in the right-subtree of the node
+			entry = findNode(entry->getRightPtr(), target);
+		} while (entry);
+		return true;
+	}
+	return false;
+}
 
 //Finding left most node within a tree
 template<class ItemType>

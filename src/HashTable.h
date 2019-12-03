@@ -1,5 +1,7 @@
 
-// Hash table abstract base class
+// Hash table template 
+// Collision resolution method: linked list
+// Rehash when exceed the threshold
 // Created by Michael Wong
 // Modified by Meng Leong Un
 
@@ -14,11 +16,10 @@ class HashTable
 {
 private:
 	int CAPACITY = 0; //Change it later
-	int THRESHOLD = 30; // Threshold for re-hashing
+	int THRESHOLD = 75; // Threshold for re-hashing
 	int hash(string&) const;
 	bool _findItem(DList<ItemType>*, string&, ItemType&, ItemType&);
 	bool _deleteItem(DList<ItemType>*, string&, ItemType&);
-	//bool _insertItem(ItemType**, string&, ItemType*);
 	bool _insertItem(DList<ItemType>*, string&, ItemType*);
 	void reHash();
 	bool isPrime(int);
@@ -27,16 +28,15 @@ private:
 	DList<ItemType>* hashTable;
 	int counter = 0;
 	int collision = 0;
-	// int dummy = -100; //For deletion purpose
 
 public:
 	HashTable(int);
 	~HashTable() { delete[]hashTable; }
 	// Take the any string as key and store the pointer to the object
 	bool insertItem(string&, ItemType*);
-	// Take the find the item with the key
+	// Find the item with the key
 	bool findItem(string&, ItemType&);
-	// Take the delete the item with the corresponding key
+	// Delete the item with the corresponding key
 	bool deleteItem(string&);
 	int getSize() { return counter; };
 	int getCollision() { return collision; };
@@ -44,31 +44,7 @@ public:
 	bool isFull() { return counter == CAPACITY; };
 	bool isEmpty() { return counter == 0; }
 	// For Debug
-	void printTable(void printHeader(), void printData(ItemType&))
-	{
-		for (int i = 0; i < CAPACITY; i++)
-		{
-			if(hashTable[i].getCount() > 0)
-			{
-				cout << i << " : " << endl;
-				hashTable[i].traverseForward(printHeader, printData);
-				cout << endl;
-				/* For Debug, see if the keys in linked-list have the same hash key
-				if (hashTable[i].getCount() >= 2)
-				{
-					ItemType i1, i2;
-					string k1, k2;
-					hashTable[i].getNodeAtIndex(0, i1);
-					hashTable[i].getNodeAtIndex(1, i2);
-					k1 = i1.getKey();
-					k2 = i2.getKey();
-					cout << hash(k1) << " " << hash(k2) << endl;
-				}
-				*/
-			}
-
-		}
-	}
+	void printTable(void printHeader(), void printData(ItemType&));
 };
 
 template<class ItemType>
@@ -96,8 +72,6 @@ HashTable<ItemType>::HashTable(int size)
 	CAPACITY = nextPrime(size * 2);
 	counter = 0;
 	hashTable = new DList<ItemType>[CAPACITY]; 
-	//for (int i = 0; i < CAPACITY; i++)
-	//	hashTable[i]->insertNode(nullptr);
 }
 
 template<class ItemType>
@@ -128,9 +102,10 @@ bool HashTable<ItemType>::_insertItem(DList<ItemType>* table, string& key, ItemT
 {
 	int index = hash(key);
 	if (!isFull()) {
-		//cout << table[index].get << " " << counter << " " << collision<< endl;
-		if (table[index].isEmpty() == 1)
+		// If the linked list is empty, which menas no collision
+		if (table[index].isEmpty())
 			counter++;
+		// If the linked list is not empty, which means collision occoured
 		else
 			collision++;
 		table[index].insertNode(*entry);
@@ -161,6 +136,7 @@ bool HashTable<ItemType>::_findItem(DList<ItemType>* table, string& key, ItemTyp
 
 	if(!isEmpty())
 	{
+		// if item is found in the linked list
 		if (table[index].searchList(item, resultPtr))
 		{
 			result = resultPtr;
@@ -188,6 +164,7 @@ template<class ItemType>
 bool HashTable<ItemType>::_deleteItem(DList<ItemType>* table, string& key, ItemType& item)
 {
 	int index = hash(key);
+	// Remove item form the linked list
 	if (table[index].deleteNode(item))
 	{
 		counter--;
@@ -196,28 +173,65 @@ bool HashTable<ItemType>::_deleteItem(DList<ItemType>* table, string& key, ItemT
 	return false;
 }
 
+/* reHash:
+		function for re-hashing
+*/
 template<class ItemType>
 void HashTable<ItemType>::reHash()
 {
 	int OLD_CAPACITY = CAPACITY;
+	int old_counter = counter;
 	CAPACITY = nextPrime(CAPACITY * 2);
 	DList<ItemType>* oldTable = hashTable;
 	DList<ItemType>* newTable = new DList<ItemType>[CAPACITY];
 	ItemType linkedListItem;
 	string key;
-	for (int i = 0, count = 0; i < OLD_CAPACITY && count < counter; i++)
+	// reset the counter
+	counter = 0;
+	// Go through each item in the table
+	for (int i = 0, count = 0; i < OLD_CAPACITY && count < old_counter; i++)
 	{
+		// Go through each item in the linked list
 		for (int j = 0; j < hashTable[i].getCount(); j++)
 		{
+			// get the item in index j
 			if (hashTable[i].getNodeAtIndex(j, linkedListItem))
 			{
 				key = linkedListItem.getKey();
+				// insert the the table
 				_insertItem(newTable, key, &linkedListItem);
 			}
 		}
+		count++;
 	}
 	this->hashTable = newTable;
 	delete[] oldTable;
 }
 
+template<class ItemType>
+void HashTable<ItemType>::printTable(void printHeader(), void printData(ItemType&))
+{
+	printHeader();
+	for (int i = 0; i < CAPACITY; i++)
+	{
+		if(hashTable[i].getCount() > 0)
+		{
+			hashTable[i].traverseForward(printData);
+			cout << "-----------------------------------------------" << endl;
+			/* For Debug, see if the keys in linked-list have the same hash key
+			if (hashTable[i].getCount() >= 2)
+			{
+				ItemType i1, i2;
+				string k1, k2;
+				hashTable[i].getNodeAtIndex(0, i1);
+				hashTable[i].getNodeAtIndex(1, i2);
+				k1 = i1.getKey();
+				k2 = i2.getKey();
+				cout << hash(k1) << " " << hash(k2) << endl;
+			}
+			*/
+		}
+
+	}
+}
 #endif
