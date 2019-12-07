@@ -9,15 +9,19 @@
 #define _HASH_TABLE
 #include <string>
 #include "DList.hpp"
-
+#include <cmath>
 
 template<class ItemType>
 class HashTable
 {
 private:
-	int CAPACITY = 0; //Change it later
-	int THRESHOLD = 75; // Threshold for re-hashing
+	int CAPACITY = 0; 
+	// Threshold for re-hashing
+	int THRESHOLD = 75; 
 	int hash(string&) const;
+	int goodHash(string& key) const;
+	int badHash(string& key) const;
+
 	bool _findItem(DList<ItemType>*, string&, ItemType&, ItemType&);
 	bool _deleteItem(DList<ItemType>*, string&, ItemType&);
 	bool _insertItem(DList<ItemType>*, string&, ItemType*);
@@ -31,7 +35,7 @@ private:
 
 public:
 	HashTable(int);
-	~HashTable() { delete[]hashTable; }
+	~HashTable() { delete[] this->hashTable; };
 	// Take the any string as key and store the pointer to the object
 	bool insertItem(string&, ItemType*);
 	// Find the item with the key
@@ -44,7 +48,10 @@ public:
 	int getLoadFactor() { return (int)(((double)counter/(double)CAPACITY)*100.0); };
 	bool isFull() { return counter == CAPACITY; };
 	bool isEmpty() { return counter == 0; }
+	// Print items in the table
 	void printTable(void printHeader(), void printData(ItemType&));
+	// Print all items including gaps in the table
+	void printInfo(void printHeader(), void printData(ItemType&));
 };
 
 template<class ItemType>
@@ -77,9 +84,27 @@ HashTable<ItemType>::HashTable(int size)
 template<class ItemType>
 int HashTable<ItemType>::hash(string& key) const
 {
-	int index = 0;
+	// Change it manually for different hash function
+	return goodHash(key);
+}
+
+template<class ItemType>
+int HashTable<ItemType>::goodHash(string& key) const
+{
+	long long index = 0;
 	for (int i = 1; i <= key.size(); i++) {
-		index += (key[i - 1] * key[i - 1] * i);
+		int c = (int)key[i - 1];
+		index += static_cast<int>(pow(c, 3) + pow(c, 2) + i);
+	}
+	return index % CAPACITY;
+}
+
+template<class ItemType>
+int HashTable<ItemType>::badHash(string& key) const
+{
+	long long index = 0;
+	for (int i = 0; i < key.size(); i++) {
+		index += key[i];
 	}
 	return index % CAPACITY;
 }
@@ -89,7 +114,10 @@ bool HashTable<ItemType>::insertItem(string& key, ItemType* entry)
 {
 	//cout << getLoadFactor() << endl;
 	if (getLoadFactor() >= THRESHOLD)
+	{
 		reHash();
+	}
+	// return true if insert successful
 	return _insertItem(this->hashTable, key, entry);
 }
 
@@ -109,6 +137,7 @@ bool HashTable<ItemType>::_insertItem(DList<ItemType>* table, string& key, ItemT
 		else
 			collision++;
 		table[index].insertNode(*entry);
+		return true;
 	}
 	return false;
 }
@@ -121,6 +150,7 @@ template<class ItemType>
 bool HashTable<ItemType>::findItem(string& key, ItemType& result)
 {
 	ItemType dummyPtr(nullptr, key);
+	// return true if item found
 	return _findItem(this->hashTable, key, dummyPtr, result);
 
 }
@@ -167,7 +197,10 @@ bool HashTable<ItemType>::_deleteItem(DList<ItemType>* table, string& key, ItemT
 	// Remove item form the linked list
 	if (table[index].deleteNode(item))
 	{
-		counter--;
+		if(table[index].getCount() == 1)
+			collision--;
+		else
+			counter++;
 		return true;
 	}
 	return false;
@@ -188,6 +221,7 @@ void HashTable<ItemType>::reHash()
 	string key;
 	// reset the counter
 	counter = 0;
+	collision = 0;
 	// Go through each item in the table
 	for (int i = 0, count = 0; i < OLD_CAPACITY && count < old_counter; i++)
 	{
@@ -202,7 +236,8 @@ void HashTable<ItemType>::reHash()
 				_insertItem(newTable, key, &linkedListItem);
 			}
 		}
-		count++;
+		if (this->hashTable[i].getCount() >= 1)
+			count++;
 	}
 	this->hashTable = newTable;
 	delete[] oldTable;
@@ -216,8 +251,8 @@ void HashTable<ItemType>::printTable(void printHeader(), void printData(ItemType
 	{
 		if(this->hashTable[i].getCount() > 0)
 		{
+			cout << "----------------------------------------" << i << "-------------------------------------" << endl;
 			this->hashTable[i].traverseForward(printData);
-			cout << "---------------------------------------------" << endl;
 			/* For Debug, see if the keys in linked-list have the same hash key
 			if (hashTable[i].getCount() >= 2)
 			{
@@ -234,4 +269,18 @@ void HashTable<ItemType>::printTable(void printHeader(), void printData(ItemType
 
 	}
 }
+template<class ItemType>
+void HashTable<ItemType>::printInfo(void printHeader(), void printData(ItemType&))
+{
+	printHeader();
+	for (int i = 0; i < CAPACITY; i++)
+	{
+			//cout << i;
+			this->hashTable[i].traverseForward(printData);
+			cout << "----------------------------------------" << i << "-------------------------------------" << endl;
+	}
+	cout << "Number of collisions: " << collision<< endl;
+}
+
+
 #endif

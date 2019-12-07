@@ -213,7 +213,7 @@ DList<T>::~DList()
     while(pCur != head)
     {
         pNext = pCur->getForw();
-        //std::cout << "DEBUG - Destructor: Now deleting " << pCur->getData().getName() << std::endl;
+        std::cout << "DEBUG - Destructor: Now deleting " << pCur->getData().getKey() << std::endl;
         delete pCur;
         pCur = pNext;
     }

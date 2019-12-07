@@ -4,6 +4,7 @@ Cryptocurrency Database
 Algorithm     Supply        Founder      Year    Price    Coin Name
 ============= ============= ============ ======= ======== =====================
 ETH           1500000000    Eich         2018    0.25     Basic Attention Token 
+IDK           23424         Me           1999    2.43423e+07 BitCoin               
 SHA256        18042537      Nakamoto     2009    8800.59  Bitcoin               
 SHA256        18109627      Yang         2017    288.32   Bitcoin Cash          
 Equihash      17202361      Nakamoto     2019    7.47     Bitcoin Gold          

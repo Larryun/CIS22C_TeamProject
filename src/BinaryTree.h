@@ -1,6 +1,6 @@
 // Binary tree abstract base class
 // Created by A. Student
-// Modified by: Tommy Vu
+// Modified by: Tommy Vu, Steven Vu
 
 #ifndef _BINARY_TREE
 #define _BINARY_TREE
@@ -37,7 +37,7 @@ public:
 	void iterativeInOrder(void visit(ItemType&)) const { _iterativeInOrder(visit, rootPtr); }
 	void iterativePostOrder(void visit(ItemType&)) const { _iterativePostOrder(visit, rootPtr); }
 	void print(void visit(ItemType&)) const { _print(visit, rootPtr, 0); }
-	void indentedTraversal(void visitIndented(int, ItemType&)) const { _indentedTraversal(1, visitIndented, rootPtr); }
+	void indentedTraversal(void visitIndented(int, ItemType&)) const { _indentedTraversal(0, visitIndented, rootPtr); }
 
 	// abstract functions to be implemented by derived class
 	virtual bool insert(const ItemType& newData) = 0;
@@ -57,7 +57,6 @@ private:
 	void _iterativePreOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _iterativeInOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
 	void _iterativePostOrder(void visit(ItemType&), BinaryNode<ItemType>* nodePtr) const;
-	void _print(void visit(ItemType&), BinaryNode<ItemType>* nodePtr, int level) const;
 	void _indentedTraversal(int level, void visit(int, ItemType&), BinaryNode<ItemType>* nodePtr) const;
 };
 
@@ -251,36 +250,14 @@ void BinaryTree<ItemType>::_iterativeInOrder(void visit(ItemType&), BinaryNode<I
 	}
 }
 
-
-
-//Prints list in PreOrder (Root, Right, Left)
-// Uses and additional parameter, int level, to display the correct level as it's printing.
-template<class ItemType>
-void BinaryTree<ItemType>::_print(void visit(ItemType&), BinaryNode<ItemType>* nodePtr, int level) const
-{
-	if (nodePtr != 0)
-	{
-		level++;
-		ItemType item = nodePtr->getItem();
-		cout << setw(8 * (level)) << "Level " << level << ": ";
-		visit(item);
-		_print(visit, nodePtr->getRightPtr(), level);
-		_print(visit, nodePtr->getLeftPtr(), level);
-	}
-	else
-	{
-		level--;
-	}
-}
-
 template<class ItemType>
 void BinaryTree<ItemType>::_indentedTraversal(int level, void visit(int, ItemType&), BinaryNode<ItemType>* nodePtr) const
 {
 	if (nodePtr != 0)
 	{
-		_indentedTraversal(level + 1, visit, nodePtr->getRightPtr());
 		ItemType item = nodePtr->getItem();
 		visit(level, item);
+		_indentedTraversal(level + 1, visit, nodePtr->getRightPtr());
 		_indentedTraversal(level + 1, visit, nodePtr->getLeftPtr());
 	}
 }

@@ -1,5 +1,5 @@
 // main test driver for CryptoCurrency Database
-// Modified by: Tommy Vu, Meng Leong Un, Michael Wong
+// Modified by: Tommy Vu, Meng Leong Un, Michael Wong, Steven Vu
 
 #include "BinarySearchTree.h" 
 #include "Crypto.h"
@@ -14,7 +14,7 @@ using namespace std;
 
 const string MAIN_COMMANDS = "ABCDEFGHI";
 const string SEARCH_COMMANDS = "ABCDE";
-const string LIST_COMMANDS = "ABCDEF";
+const string LIST_COMMANDS = "ABCDEFG";
 const string NOT_FOUND = "Cryptocurrency Not Found!";
 
 // Menu printing function
@@ -26,9 +26,9 @@ void displaytListSubMenu();
 void buildTree(string filename, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
 
 // Manager Functions
-void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree,HashTable<CryptocurrencyPtr>* hashArr);
-void deleteManager(Stack<Cryptocurrency*>* deleteStack, BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree,HashTable<CryptocurrencyPtr>* hashArr);
-void searchManager( BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+void deleteManager(Stack<Cryptocurrency*>* deleteStack, BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+void searchManager(BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
 void primaryKeySearchManager(BinarySearchTree<CryptocurrencyPtr>* tree, void printCrypto(CryptocurrencyPtr&));
 void secondaryKeySearchManager(BinarySearchTree<CryptocurrencyPtr>* tree, void printCrypto(CryptocurrencyPtr&));
 void hashTableSearchManager(HashTable<CryptocurrencyPtr>* table, void printCrypto(CryptocurrencyPtr&));
@@ -37,6 +37,7 @@ void listManager(BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchT
 // Main Search Function
 template<class T>
 void doSearch(T* dataStructure, string& key, void printCrypto(CryptocurrencyPtr&), bool searchFunction(T*, string, CryptocurrencyPtr&));
+
 // Search methods for tree and hash table
 bool treeSearch(BinarySearchTree<CryptocurrencyPtr>* tree, string key, CryptocurrencyPtr& result);
 bool hashTableSearch(HashTable<CryptocurrencyPtr>* table, string key, CryptocurrencyPtr& result);
@@ -77,6 +78,7 @@ bool supplyValidator(long long& supply);
 bool priceValidator(double& price);
 bool validateInput(char& command, const string& COMMANDS);
 bool isAllAlpha(string& s);
+void normalizeStr(string& str);
 
 // Trivial Functions
 bool isKeyExists(string& key, BinarySearchTree<CryptocurrencyPtr>* tree);
@@ -86,6 +88,7 @@ void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 void clearStack(Stack<Cryptocurrency*>* undoStack);
 void trimSpaces(string& line);
 void exit(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr);
+void printWelcome();
 
 // Build to File Functions
 void writeData(BinarySearchTree <CryptocurrencyPtr>* primaryTree, string outFileName, Stack<Cryptocurrency*>* undoStack);
@@ -95,6 +98,7 @@ void visitPrint(CryptocurrencyPtr& a, ofstream& outFile);
 
 int main()
 {
+	printWelcome();
 	string inputFileName = "CryptoList.txt";
 	int lines = getNumberOfLines(inputFileName);
 
@@ -105,31 +109,23 @@ int main()
 
 	HashTable<CryptocurrencyPtr>* hashArr = new HashTable<CryptocurrencyPtr>(lines); //Initialize the hashTable
 	buildTree(inputFileName, primaryTree, secondaryTree, hashArr);
-	//hashArr->printTable(printHeader, printCrypto);
-
-	// Used as a place to hold User Input for insert.
-	// char insert[30];
-	int counter = 1;
 
 	displayMenu();
 
 	char command;
-	string searchKey;
 	do
 	{
 		if (getInput(command, MAIN_COMMANDS))
 			runCommand(command, primaryTree, secondaryTree, hashArr, undoStack);
 
-	} while (command != MAIN_COMMANDS[MAIN_COMMANDS.length()-1]);
-
+	} while (command != MAIN_COMMANDS[MAIN_COMMANDS.length() - 1]);
 	cout << "Bye! Thanks for using the Cryptocurrency Database!" << endl;
 	return 0;
 }
 
 /*
-	getInput:
-		return true if input is correct otherwise return false,
-		and read command and searchKey if avaliable
+	return true if input is correct otherwise return false,
+	and read command and searchKey if avaliable
 */
 bool getInput(char& command, const string& COMMANDS)
 {
@@ -142,21 +138,19 @@ bool getInput(char& command, const string& COMMANDS)
 }
 
 /*
-	validateInput:
-		return true if input is correct otherwise return false
+	return true if input is correct otherwise return false
 */
 bool validateInput(char& command, const string& COMMANDS)
 {
 	if (COMMANDS.find(command) != -1)
 		return true;
 	else
-		cout << command << " is not a valid operation. Please enter a valid operation. (Press H for help) \n" << endl;
-		return false;
+		cout << command << " is not a valid operation. Please enter a valid operation. (Press " <<  *(COMMANDS.rbegin()+1) << " for help) \n" << endl;
+	return false;
 }
 
 /*
-	isAllAlpha:
-		returns true is all char in string s is alphabet otherwise return false
+	returns true is all char in string s is alphabet otherwise return false
 */
 bool isAllAlpha(string& s)
 {
@@ -169,8 +163,7 @@ bool isAllAlpha(string& s)
 }
 
 /*
-	runCommand:
-		run the coresponding function with given command
+	run the coresponding function with given command
 */
 void runCommand(char& runCommand,
 	BinarySearchTree<CryptocurrencyPtr>* primaryTree,
@@ -212,12 +205,16 @@ void runCommand(char& runCommand,
 		displayMenu();
 		break;
 	case 'I':
+		writeData(primaryTree, "SortedOutput.txt", deleteStack);
 		exit(deleteStack, primaryTree, secondaryTree, hashArr);
 		break;
 	}
 }
 
-// Displays menu.
+/* 
+	display the main menu for different operations
+*/
+
 void displayMenu()
 {
 	// add a undo delete
@@ -235,9 +232,12 @@ void displayMenu()
 	cout << endl;
 }
 
+/* 
+	display the search sub-menu for searching operation
+*/
 void displaytSearchSubMenu()
 {
-	cout << "Sub-menu for search operation"<< endl;
+	cout << "Sub-menu for search operation" << endl;
 	cout << "" << endl;
 	cout << "A - Search for a Cryptocurrency with Primary Key in BST" << endl;
 	cout << "B - Search for a Cryptocurrency with Secondary Key in BST" << endl;
@@ -247,22 +247,25 @@ void displaytSearchSubMenu()
 	cout << endl;
 }
 
+/* 
+	display the list sub-menu for listing operation
+*/
 void displaytListSubMenu()
 {
-	cout << "Sub-menu for Listing operation"<< endl;
+	cout << "Sub-menu for Listing operation" << endl;
 	cout << "" << endl;
 	cout << "A - List unsorted list" << endl;
 	cout << "B - List data sorted by the primary key (name of the cryptocurrency)" << endl;
 	cout << "C - List data sorted by the secondary key (algorithm of the cryptocurrency)" << endl;
-	cout << "D - Speacial Print" << endl;
-	cout << "E - Help to show the menu" << endl;
-	cout << "F - Exit" << endl;
+	cout << "D - Special Print" << endl;
+	cout << "F - Help to show the menu" << endl;
+	cout << "G - Exit" << endl;
 	cout << endl;
 }
 
 
-/* insertAll:
-		insert the cryptocurrenty to primaryTree, secondaryTree and hash table
+/* 
+	insert the cryptocurrenty to primaryTree, secondaryTree and hash table
 */
 bool insertAll(Cryptocurrency& crypto, BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
@@ -272,13 +275,17 @@ bool insertAll(Cryptocurrency& crypto, BinarySearchTree <CryptocurrencyPtr>* pri
 	if (isKeyExists(name, primaryTree))
 		return false;
 	CryptocurrencyPtr* nameAsKey = new CryptocurrencyPtr(&crypto, name);
-	CryptocurrencyPtr* algAsKey = new CryptocurrencyPtr(&crypto, alg);
+	// Insert with alg as secondary key and name as primary key
+	CryptocurrencyPtr* algAsKey = new CryptocurrencyPtr(&crypto, alg, name);
 	primaryTree->insert(*nameAsKey);
 	secondaryTree->insert(*algAsKey);
 	hashArr->insertItem(name, nameAsKey);
 	return true;
 }
 
+/* 
+	get number of lines in the file
+*/
 int getNumberOfLines(string filename)
 {
 	ifstream inFile;
@@ -299,14 +306,16 @@ int getNumberOfLines(string filename)
 		}
 	}
 	inFile.close();
-	return count-1;
-
+	return count - 1;
 }
 
-// Builds a Binary Search Tree from a text file.
+/* 
+	Builds a Binary Search Tree from a text file.
+*/
+
 void buildTree(string filename, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
-	
+
 	ifstream inFile;
 	string algor, founder, name;
 	long long supply;
@@ -334,22 +343,24 @@ void buildTree(string filename, BinarySearchTree<CryptocurrencyPtr>* primaryTree
 }
 
 /*
-	printCrypto:
-		print infomations of the cryptocurrnecy in given format
+	print infomations of the cryptocurrnecy in given format
 */
 void printCrypto(Cryptocurrency& crypto)
 {
 	// Subject to change
 	cout << left;
-	cout << setw(25) << crypto.getName();
+	cout << setw(24) << crypto.getName();
 	cout << setw(15) << crypto.getAlg();
-	cout << setw(4) << crypto.getDate() << endl;
+	cout << setw(6) << crypto.getDate();
+	cout << setw(12) << crypto.getFounder();
+	cout << "$" << setw(8) << crypto.getPrice();
+	cout << setw(12) << crypto.getSupply() << "||" << endl;
+
 }
 
 /*
-	printCrypto:
-		overloaded function for printting CryptocurrencyPtr
-		print infomations of the cryptocurrnecy in given format
+	overloaded function for printting CryptocurrencyPtr
+	print infomations of the cryptocurrnecy in given format
 */
 void printCrypto(CryptocurrencyPtr& cryptoPtr)
 {
@@ -358,8 +369,7 @@ void printCrypto(CryptocurrencyPtr& cryptoPtr)
 }
 
 /*
-	divider:
-		print a line of given symble in given len
+	print a line of given symble in given len
 */
 string divider(int len, char symbol)
 {
@@ -369,25 +379,24 @@ string divider(int len, char symbol)
 	return t;
 }
 
+/*
+	print the header for the printCrypto function
+*/
 void printHeader()
 {
-	cout << endl << divider(55, '=') << endl;
+	cout << endl << divider(80, '=') << endl;
 	cout << left;
-	cout << setw(25) << "Name";
+	cout << setw(24) << "Name";
 	cout << setw(15) << "Algorithm";
-	cout << setw(4) << "Date Founded" << endl;
-	cout << divider(55, '=') << endl;
+	cout << setw(6) << "Date";
+	cout << setw(12) << "Founder";
+	cout << setw(9) << "Price";
+	cout << setw(12) << "Supply" << endl;
+	cout << divider(80, '=') << endl;
 }
-/* This is not needed. All hashing processes are done in the hashTable class
-void hashNumber(int len)
-{
-
-}
-*/
 
 /*
-	trimSpaces:
-		remove all leading and trailing spaces
+	remove all leading and trailing spaces
 */
 void trimSpaces(string& line)
 {
@@ -397,9 +406,8 @@ void trimSpaces(string& line)
 	line = line.substr(start, end - start + 1);
 }
 
-/* 
-	getInsertData:
-		promt the user and take the value, return false if fail
+/*
+	promt the user and take the value, return false if fail
 */
 template<typename T>
 bool getInsertData(T& data, string message)
@@ -415,9 +423,8 @@ bool getInsertData(T& data, string message)
 	return true;
 }
 
-/* 
-	getInsertData:
-		promt the user and take the value, return false if fail and not validated
+/*
+	promt the user and take the value, return false if fail and not validated
 */
 template<typename T>
 bool getInsertData(T& data, string message, bool validate(T&))
@@ -426,24 +433,34 @@ bool getInsertData(T& data, string message, bool validate(T&))
 	return false;
 }
 
+/*
+	validate the year
+*/
 bool yearValidator(int& year)
 {
 	return (year >= 1950 && year <= 2019);
 }
 
+/*
+	validate the supply
+*/
 bool supplyValidator(long long& supply)
 {
+	supply = (int)supply;
+	cin.ignore(80, '\n');
 	return (supply >= 0);
 }
 
+/*
+	validate the price
+*/
 bool priceValidator(double& price)
 {
 	return (price >= 0);
 }
 
 /*
-	isKeyExists:
-		chekc if the key is exists in the BST
+	chekc if the key is exists in the BST
 */
 bool isKeyExists(string& key, BinarySearchTree<CryptocurrencyPtr>* tree)
 {
@@ -452,6 +469,9 @@ bool isKeyExists(string& key, BinarySearchTree<CryptocurrencyPtr>* tree)
 
 }
 
+/*
+	handle taking inputs and inerst the the trees and hash table.
+*/
 void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
 	Cryptocurrency* crypto;
@@ -464,12 +484,14 @@ void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySear
 
 	cout << "What is the name of the Cryptocurrency?" << endl;
 	getline(cin, name);
-	trimSpaces(name);
+	normalizeStr(name);
+	
 	if (isKeyExists(name, primaryTree))
 	{
-		cout << "The Cryptocurrency" + name + " already exists in the primary tree!" << endl;
+		cout << "The Cryptocurrency " + name + " already exists in the primary tree!" << endl;
 		return;
 	}
+	
 
 	cout << "What is " << name << "'s Algorithm?" << endl;
 	getline(cin, alg);
@@ -493,7 +515,7 @@ void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySear
 	cin.ignore();
 	cout << "Who founded " << name << "?" << endl;
 	getline(cin, founder);
-	trimSpaces(founder);
+	normalizeStr(founder);
 
 	crypto = new Cryptocurrency(name, alg, supply, year, price, founder);
 	insertAll(*crypto, primaryTree, secondaryTree, hashArr);
@@ -503,18 +525,18 @@ void insertManager(BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySear
 
 	// for testing purposes
 	// cout << name << " " << alg << " " << supply << " " << year << " " << price << " " << founder << endl;
-		 
+
 }
 
 /*
-	deleteManager:
-		handling deletion and taking input from user
-		push deleted item to undo stack
-		and remove the item from hash table, and two trees
+	handling deletion and taking input from user
+	push deleted item to undo stack
+	and remove the item from hash table, and two trees
 */
 void deleteManager(Stack<Cryptocurrency*>* undoStack, BinarySearchTree <CryptocurrencyPtr>* primaryTree, BinarySearchTree <CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
 	CryptocurrencyPtr cryptoPtr;
+	CryptocurrencyPtr tmp;
 	string name, alg;
 	cout << "Enter the name of the Cryptocurrency you wish to delete" << endl;
 	getline(cin, name);
@@ -527,11 +549,11 @@ void deleteManager(Stack<Cryptocurrency*>* undoStack, BinarySearchTree <Cryptocu
 		alg = cryptoPtr.getCrypto()->getAlg();
 		// Remove the node form primary tree name as key
 		primaryTree->remove(CryptocurrencyPtr(nullptr, name));
-		// Remove the node form secondary tree with algorithm as key 
-		secondaryTree->remove(CryptocurrencyPtr(nullptr, alg));
+		// Remove the node form secondary tree with algorithm as key and name as primary key
+		secondaryTree->remove(CryptocurrencyPtr(nullptr, alg, name));
 		// Remove the node form secondary tree with name
 		hashArr->deleteItem(name);
-		cout << name << " has been deleted from both tree and hash table" << endl;
+		cout << name << " has been deleted from both trees and the hash table" << endl;
 	}
 	else
 	{
@@ -540,8 +562,7 @@ void deleteManager(Stack<Cryptocurrency*>* undoStack, BinarySearchTree <Cryptocu
 }
 
 /*
-	treeSearch:
-		search in BST, return ture if found, else false
+	search in BST, return ture if found, else false
 */
 bool treeSearch(BinarySearchTree<CryptocurrencyPtr>* tree, string key, CryptocurrencyPtr& result)
 {
@@ -552,8 +573,7 @@ bool treeSearch(BinarySearchTree<CryptocurrencyPtr>* tree, string key, Cryptocur
 }
 
 /*
-	hashTableSearch:
-		search in hash table, return ture if found, else false
+	search in hash table, return ture if found, else false
 */
 bool hashTableSearch(HashTable<CryptocurrencyPtr>* table, string key, CryptocurrencyPtr& result)
 {
@@ -564,8 +584,7 @@ bool hashTableSearch(HashTable<CryptocurrencyPtr>* table, string key, Cryptocurr
 }
 
 /*
-	runSearchManager:
-		handling calling function with corresponding command
+	handling calling function with corresponding command
 */
 void runSearchCommand(char& runCommand,
 	BinarySearchTree<CryptocurrencyPtr>* primaryTree,
@@ -576,12 +595,15 @@ void runSearchCommand(char& runCommand,
 	{
 	case 'A':
 		primaryKeySearchManager(primaryTree, printCrypto);
+		cout << divider(80, '=') << endl << endl;
 		break;
 	case 'B':
 		secondaryKeySearchManager(secondaryTree, printCrypto);
+		cout << divider(80, '=') << endl << endl;
 		break;
 	case 'C':
 		hashTableSearchManager(hashArr, printCrypto);
+		cout << divider(80, '=') << endl << endl;
 		break;
 	case 'D':
 		displaytSearchSubMenu();
@@ -594,10 +616,9 @@ void runSearchCommand(char& runCommand,
 }
 
 /*
-	searchManager:
-		handling taking and running the command
+	handling taking and running the command
 */
-void searchManager( BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
+void searchManager(BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
 	char command;
 	displaytSearchSubMenu();
@@ -605,13 +626,13 @@ void searchManager( BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySear
 	{
 		if (getInput(command, SEARCH_COMMANDS))
 			runSearchCommand(command, primaryTree, secondaryTree, hashArr);
-	// Using the last charactor in commands list as the exit command
-	// If command == last charactor in commands list, then break
-	} while (command != SEARCH_COMMANDS[SEARCH_COMMANDS.length()-1]);
+		// Using the last charactor in commands list as the exit command
+		// If command == last charactor in commands list, then break
+	} while (command != SEARCH_COMMANDS[SEARCH_COMMANDS.length() - 1]);
 }
 
-/* doSearch:
-		The template for searching in different data structure
+/* 
+	The template for searching in different data structure.  I am Meng, Meng is awesome.
 */
 template<class T>
 void doSearch(T* dataStructure, string& key, void printCrypto(CryptocurrencyPtr&), bool searchFunction(T*, string, CryptocurrencyPtr&))
@@ -624,7 +645,6 @@ void doSearch(T* dataStructure, string& key, void printCrypto(CryptocurrencyPtr&
 	if (searchFunction(dataStructure, key, resultCryptoPtr))
 	{
 		printCrypto(resultCryptoPtr);
-		cout << endl;
 	}
 	else {
 		cout << NOT_FOUND << endl;
@@ -632,21 +652,19 @@ void doSearch(T* dataStructure, string& key, void printCrypto(CryptocurrencyPtr&
 }
 
 /*
-	primaryKeySearchManager:
-		handling search opeartion in primary BST
+	handling search opeartion in primary BST
 */
 void primaryKeySearchManager(BinarySearchTree<CryptocurrencyPtr>* tree, void printCrypto(CryptocurrencyPtr&))
 {
 	string name;
 	cout << "Please input the name of the Cryptocurrency: " << endl;
-	getline(cin,name);
+	getline(cin, name);
 	trimSpaces(name);
 	doSearch<BinarySearchTree<CryptocurrencyPtr>>(tree, name, printCrypto, treeSearch);
 }
 
 /*
-	secondaryKeySearchManager:
-		handling search opeartion in secondary BST
+	handling search opeartion in secondary BST
 */
 void secondaryKeySearchManager(BinarySearchTree<CryptocurrencyPtr>* tree, void printCrypto(CryptocurrencyPtr&))
 {
@@ -657,26 +675,23 @@ void secondaryKeySearchManager(BinarySearchTree<CryptocurrencyPtr>* tree, void p
 	printHeader();
 	if (!tree->getAllEntry(CryptocurrencyPtr(nullptr, alg), printCrypto))
 		cout << NOT_FOUND << endl;
-	cout << endl;
 
 }
 
 /*
-	hashTableSearchManage:
-		handling search opeartion in hash table
+	handling search opeartion in hash table
 */
 void hashTableSearchManager(HashTable<CryptocurrencyPtr>* table, void printCrypto(CryptocurrencyPtr&))
 {
 	string name;
 	cout << "Please input the name of the Cryptocurrency: " << endl;
 	getline(cin, name);
-	trimSpaces(name);
+	normalizeStr(name);
 	doSearch<HashTable<CryptocurrencyPtr>>(table, name, printCrypto, hashTableSearch);
 }
 
 /*
-	runListCommand:
-		mapping the function to the corresponding command
+	mapping the function to the corresponding command
 */
 void runListCommand(char& runCommand,
 	BinarySearchTree<CryptocurrencyPtr>* primaryTree,
@@ -688,26 +703,34 @@ void runListCommand(char& runCommand,
 	case 'A':
 		cout << "Printing the hash table in unsorted list:" << endl;
 		hashArr->printTable(printHeader, printCrypto);
+		cout << "Load factor: " << hashArr->getLoadFactor() << "%" << endl;
 		break;
 	case 'B':
 		cout << "Printing the primary tree in sorted list:" << endl;
 		printHeader();
 		primaryTree->inOrder(printCrypto);
+		cout << divider(80, '=') << endl << endl;
 		break;
 	case 'C':
 		cout << "Printing the secondary tree in sorted list:" << endl;
 		printHeader();
 		secondaryTree->inOrder(printCrypto);
+		cout << divider(80, '=') << endl << endl;
 		break;
 	case 'D':
 		// Speacial print
 		primaryTree->indentedTraversal(visitIndented);
+		//primaryTree->print(print1);
 		cout << endl;
 		break;
 	case 'E':
-		displaytListSubMenu();
+		// Hidden Print
+		hashArr->printInfo(printHeader, printCrypto);
 		break;
 	case 'F':
+		displaytListSubMenu();
+		break;
+	case 'G':
 		cout << "Exiting List Manager..." << endl << endl;
 		break;
 	}
@@ -715,10 +738,9 @@ void runListCommand(char& runCommand,
 }
 
 /*
-	listManager:
-		for handling operations in listing and printing
+	for handling operations in listing and printing
 */
-void listManager( BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
+void listManager(BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
 	char command;
 	displaytListSubMenu();
@@ -726,14 +748,13 @@ void listManager( BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearch
 	{
 		if (getInput(command, LIST_COMMANDS))
 			runListCommand(command, primaryTree, secondaryTree, hashArr);
-	// Using the last charactor in commands list as the exit command
-	// If command == last charactor in commands list, then break
-	} while (command != LIST_COMMANDS[LIST_COMMANDS.length()-1]);
+		// Using the last charactor in commands list as the exit command
+		// If command == last charactor in commands list, then break
+	} while (command != LIST_COMMANDS[LIST_COMMANDS.length() - 1]);
 }
 
 /*
-	undo:
-		undo the most recent deletion
+	undo the most recent deletion
 */
 void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
@@ -741,9 +762,9 @@ void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 	if (undoStack->pop(poppedItem))
 	{
 		cout << "Undo deleting " + poppedItem->getName() + " ..." << endl;
-		if(insertAll(*poppedItem, primaryTree, secondaryTree, hashArr))
+		if (insertAll(*poppedItem, primaryTree, secondaryTree, hashArr))
 			cout << "Undo successful!" << endl;
-		else 
+		else
 			cout << "Undo Failed, Key Already Exists." << endl;
 	}
 	else
@@ -753,8 +774,7 @@ void undo(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 }
 
 /*
-	printHashTableStats:
-		print the statistics of the hash tabel in a table format
+	print the statistics of the hash table in a table format
 */
 void printHashTableStats(HashTable<CryptocurrencyPtr>* hashArr)
 {
@@ -762,7 +782,7 @@ void printHashTableStats(HashTable<CryptocurrencyPtr>* hashArr)
 	cout << divider(80, '=') << endl;
 	cout << left;
 	cout << setw(10) << "Capacity" << setw(15) << "Counts";
-	cout << setw(15) << "Load Factor" << setw(15) << "Collisions";
+	cout << setw(15) << "Load Factor (%)" << setw(15) << "Collisions";
 	cout << setw(20) << "Total Item Stored" << endl;
 	cout << divider(80, '=') << endl;
 	cout << setw(10) << hashArr->getCapacity() << setw(15) << hashArr->getSize();
@@ -771,14 +791,19 @@ void printHashTableStats(HashTable<CryptocurrencyPtr>* hashArr)
 	cout << divider(80, '=') << endl;
 }
 
+/*
+	visit function for speacial print
+*/
 void visitIndented(int level, CryptocurrencyPtr& cryptoPtr)
 {
 	for (int i = 0; i < level; i++)
 		cout << "\t";
-	cout << "Level " << level << ": " << cryptoPtr.getCrypto()->getName() << endl;
-	//printCrypto(cryptoPtr);
+	cout << "Level " << level + 1 << ": " << cryptoPtr.getCrypto()->getName() << endl;
 }
 
+/*
+	write data in trees to the file
+*/
 void writeData(BinarySearchTree <CryptocurrencyPtr>* primaryTree, string outFileName, Stack<Cryptocurrency*>* undoStack)
 {
 	ofstream textFile;
@@ -799,11 +824,14 @@ void writeData(BinarySearchTree <CryptocurrencyPtr>* primaryTree, string outFile
 	primaryTree->inOrderOutput(visitPrint, textFile);
 	clearStack(undoStack);
 	cout << "Data writen to " + outFileName << endl;
-	cout << "Undo stack cleared" << endl;
+	cout << "Undo stack cleared!" << endl;
 
 	textFile.close();
 }
 
+/*
+	visit function for printing
+*/
 void visitPrint(CryptocurrencyPtr& a, ofstream& outFile)
 {
 	Cryptocurrency dummy = *a.getCrypto();
@@ -812,6 +840,9 @@ void visitPrint(CryptocurrencyPtr& a, ofstream& outFile)
 		<< " " << setw(7) << dummy.getDate() << " " << setw(8) << dummy.getPrice() << " " << setw(22) << dummy.getName() << endl;
 }
 
+/*
+	clear the undo stack
+*/
 void clearStack(Stack<Cryptocurrency*>* undoStack)
 {
 	Cryptocurrency* tmp;
@@ -819,7 +850,9 @@ void clearStack(Stack<Cryptocurrency*>* undoStack)
 		delete tmp;
 }
 
-
+/*
+	delete all memory and exit the program:
+*/
 void exit(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>* primaryTree, BinarySearchTree<CryptocurrencyPtr>* secondaryTree, HashTable<CryptocurrencyPtr>* hashArr)
 {
 	cout << "Deleting Undo Stack..." << endl;
@@ -830,4 +863,58 @@ void exit(Stack<Cryptocurrency*>* undoStack, BinarySearchTree<CryptocurrencyPtr>
 	delete secondaryTree;
 	cout << "Deleting hash table..." << endl;
 	delete hashArr;
+}
+
+/*
+	trim the spaces and make the first letter in each word th upper
+*/
+void normalizeStr(string& str)
+{
+	string result = "";
+	string tmp = "";
+	trimSpaces(str);
+	for (int i = 0; i < str.length(); i++)
+	{
+		// At the end
+		if (i + 1 == str.length())
+		{
+			tmp += (str[i]);
+			tmp[0] = toupper(tmp[0]);
+			result += tmp;
+			break;
+		}
+		else if (str[i] == ' ' && str[i - 1] != ' ')
+		{
+			// Uppercase for the first letter
+			tmp[0] = (tmp[0]);
+			result += tmp;
+			result += " ";
+			tmp = "";
+		}
+		else if (str[i] != ' ')
+		{
+			tmp += (str[i]);
+		}
+	}
+	str = result;
+}
+
+/*
+	print the welcome message!
+*/
+void printWelcome()
+{
+	cout << "\n\n\t =================== -WELCOME- ===================\n\n";
+	cout << "\tThis project is based off of CryptoCurrencies.\n"
+		<< "\tWe will have two BST: One with the coins name\n"
+		<< "\tand another with the coins algorithm. \n";
+	cout << "\tWe also have a hash array using modulo division.\n\n";
+	cout << "\tTeam Coordinator: Tommy Vu\n";
+	cout << "\tBST Algorithms: Steven Vu\n";
+	cout << "\tHash List Algorithms: Michael Wong\n";
+	cout << "\tScreen Output: Meng Leong Un\n";
+	cout << "\tFile I/O: Tommy Vu\n";
+	cout << "\tTest Plan: Michael Wong & Meng Leong Un\n";
+	cout << "\tProject Documentation: Tommy Vu & Steven Vu";
+	cout << "\n\n\t ============== -CryptoCurrencies- ==============\n\n";
 }

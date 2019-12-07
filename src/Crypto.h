@@ -61,11 +61,14 @@ public:
 struct CryptocurrencyPtr{
 	Cryptocurrency* crypto;
 	string key;
+	string pk;
 
-	CryptocurrencyPtr() { crypto = nullptr; key = ""; };
-	CryptocurrencyPtr(Cryptocurrency* crypto_, string key_) { crypto = crypto_; key = key_; };
+	CryptocurrencyPtr() { crypto = nullptr; key = ""; pk = ""; };
+	CryptocurrencyPtr(Cryptocurrency* crypto_, string key_) { crypto = crypto_; key = key_; pk = ""; };
+	CryptocurrencyPtr(Cryptocurrency* crypto_, string key_, string pk_) { crypto = crypto_; key = key_; pk = pk_; };
 
 	string getKey() { return key; };
+	string getPK() { return pk; };
 	Cryptocurrency* getCrypto() { return crypto; };
 	void setKey(string k) { key = k; };
 
